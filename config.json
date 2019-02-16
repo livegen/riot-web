@@ -1,6 +1,6 @@
 {
     "default_hs_url": "https://hs.livegen.net",
-    "default_is_url": "https://vector.im",
+    "default_is_url": "https://hs.livegen.net",
     "disable_custom_urls": false,
     "disable_guests": true,
     "disable_login_language_selector": false,
