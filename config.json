@@ -18,7 +18,8 @@
     "default_theme": "light",
     "roomDirectory": {
         "servers": [
-            "hs.livegen.net"
+            "hs.livegen.net",
+            "matrix.org"
         ]
     },
     "welcomeUserId": "",
