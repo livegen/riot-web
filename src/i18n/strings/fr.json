@@ -42,5 +42,22 @@
     "Create Account": "Créer un compte",
     "Need help?": "Besoin d'aide ?",
     "Explore rooms": "Explorer les salons",
-    "Room Directory": "Répertoire de salons"
+    "Room Directory": "Répertoire de salons",
+
+    "Your username": "Votre nom d'utilisateur",
+    "Your password": "Votre mot de passe",
+    "Repeat your password": "Répéter votre mot de passe",
+    "Your invite token": "Votre token d'invitation",
+    "Register": "Inscription",
+
+    "A username is required": "Un nom d'utilisateur est requis",
+    "A password is required": "Un mot de passe est requis",
+    "The passwords does not match": "Les mots de passes ne correspondent pas",
+    "A token is required": "Un jeton est requis",
+
+    "A unknown error occurred": "Une erreur inconnu s'est produite",
+    "No response received": "Le serveur n'a pas répondu",
+    "Invalid response received": "La réponse du serveur est invalide",
+    "Account created with success": "Compte crée avec succès",
+    "You will be redirected soon to login page": "Vous allez bientôt être redirigé sur la page de login"
 }
