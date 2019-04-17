@@ -42,5 +42,23 @@
     "Create Account": "Create Account",
     "Need help?": "Need help?",
     "Explore rooms": "Explore rooms",
-    "Room Directory": "Room Directory"
+    "Room Directory": "Room Directory",
+    
+    
+    "Your username": "Your username",
+    "Your password": "Your password",
+    "Repeat your password": "Repeat your password",
+    "Your invite token": "Your invite token",
+    "Register": "Register",
+
+    "A username is required": "A username is required",
+    "A password is required": "A password is required",
+    "The passwords does not match": "The passwords does not match",
+    "A token is required": "A token is required",
+
+    "A unknown error occurred": "A unknown error occurred",
+    "No response received": "No response received",
+    "Invalid response received": "Invalid response received",
+    "Account created with success": "Account created with success",
+    "You will be redirected soon to login page": "You will be redirected soon to login page"
 }

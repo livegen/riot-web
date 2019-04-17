@@ -17,5 +17,22 @@
     "Explore rooms": "Explore rooms",
     "Room Directory": "Room Directory",
     "Search the room directory": "Search the room directory",
-    "Get started with some tips from Riot Bot!": "Get started with some tips from Riot Bot!"
+    "Get started with some tips from Riot Bot!": "Get started with some tips from Riot Bot!",
+    
+    "Your username": "Your username",
+    "Your password": "Your password",
+    "Repeat your password": "Repeat your password",
+    "Your invite token": "Your invite token",
+    "Register": "Register",
+
+    "A username is required": "A username is required",
+    "A password is required": "A password is required",
+    "The passwords does not match": "The passwords does not match",
+    "A token is required": "A token is required",
+
+    "A unknown error occurred": "A unknown error occurred",
+    "No response received": "No response received",
+    "Invalid response received": "Invalid response received",
+    "Account created with success": "Account created with success",
+    "You will be redirected soon to login page": "You will be redirected soon to login page"
 }
