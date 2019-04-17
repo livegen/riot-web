@@ -98,7 +98,7 @@ export default class RegistrationForm extends React.PureComponent {
         const { inputErrors } = this.state;
 
         if (name in inputErrors) {
-            return <span className="mx_Login_error">{inputErrors[name].join('. ')}</span>;
+            return <div className="mx_Login_error" style={{paddingBottom: '10px'}}>{inputErrors[name].join('. ')}</div>;
         }
 
         return null;
@@ -110,42 +110,63 @@ export default class RegistrationForm extends React.PureComponent {
             <div>
                 {this.renderFormError()}
                 <form method="post" onSubmit={this.submit}>
-                    <input
-                        type="text"
-                        name="username"
-                        className="mx_Login_field"
-                        placeholder={_t('Your username')}
-                        pattern="^@?[a-zA-Z_\-=\.\/0-9]+$"
-                        minLength={1}
-                        maxLength={200}
-                    />
+                    <div className="mx_AuthBody_fieldRow">
+                        <div className="mx_Field mx_Field_input">
+                            <input
+                                type="text"
+                                name="username"
+                                id="mx_RegistrationForm_username"
+                                placeholder={_t('Your username')}
+                                pattern="^@?[a-zA-Z_\-=\.\/0-9]+$"
+                                minLength={1}
+                                maxLength={200}
+                            />
+                            <label htmlFor="mx_RegistrationForm_username">{_t('Your username')}</label>
+                        </div>
+                    </div>
                     {this.renderInputError('username')}
-                    <input
-                        type="password"
-                        name="password"
-                        className="mx_Login_field"
-                        minLength={10}
-                        maxLength={128}
-                        placeholder={_t('Your password')}
-                    />
+
+                    <div className="mx_AuthBody_fieldRow">
+                        <div className="mx_Field mx_Field_input">
+                            <input
+                                type="password"
+                                name="password"
+                                id="mx_RegistrationForm_password"
+                                minLength={10}
+                                maxLength={128}
+                                placeholder={_t('Your password')}
+                            />
+                            <label htmlFor="mx_RegistrationForm_password">{_t('Your password')}</label>
+                        </div>
+                        <div className="mx_Field mx_Field_input">
+                            <input
+                                type="password"
+                                name="confirm"
+                                id="mx_RegistrationForm_passwordConfirm"
+                                minLength={10}
+                                maxLength={128}
+                                placeholder={_t('Confirm')}
+                            />
+                            <label htmlFor="mx_RegistrationForm_passwordConfirm">{_t('Confirm')}</label>
+                        </div>
+                    </div>
                     {this.renderInputError('password')}
-                    <input
-                        type="password"
-                        name="confirm"
-                        className="mx_Login_field"
-                        minLength={10}
-                        maxLength={128}
-                        placeholder={_t('Repeat your password')}
-                    />
                     {this.renderInputError('confirm')}
-                    <input
-                        type="text"
-                        name="token"
-                        className="mx_Login_field"
-                        pattern="^[A-Za-z]+$"
-                        placeholder={_t('Your invite token')}
-                    />
+
+                    <div className="mx_AuthBody_fieldRow">
+                        <div className="mx_Field mx_Field_input">
+                            <input
+                                type="text"
+                                name="token"
+                                id="mx_RegistrationForm_token"
+                                pattern="^[A-Za-z]+$"
+                                placeholder={_t('Your invite token')}
+                            />
+                            <label htmlFor="mx_RegistrationForm_token">{_t('Your invite token')}</label>
+                        </div>
+                    </div>
                     {this.renderInputError('token')}
+
                     <br />
                     <input
                         type="submit"
