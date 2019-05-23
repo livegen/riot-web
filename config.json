@@ -6,20 +6,23 @@
     "disable_login_language_selector": false,
     "disable_3pid_login": false,
     "brand": "Livegen",
-    "integrations_ui_url": "",
-    "integrations_rest_url": "",
-    "integrations_jitsi_widget_url": "",
+    "integrations_ui_url": "https://dimension.livegen.net/riot",
+    "integrations_rest_url": "https://dimension.livegen.net/api/v1/scalar",
+    "integrations_widgets_urls": ["https://dimension.livegen.net/widgets"],
+    "integrations_jitsi_widget_url": "https://dimension.livegen.net/widgets/jitsi",
     "bug_report_endpoint_url": "https://riot.im/bugreports/submit",
     "features": {
         "feature_groups": "labs",
-        "feature_pinning": "labs"
+        "feature_pinning": "labs",
+        "feature_reactions": "labs",
+        "feature_message_editing": "labs"
     },
     "default_federate": true,
     "default_theme": "light",
     "roomDirectory": {
         "servers": [
-            "hs.livegen.net",
-            "matrix.org"
+            "matrix.org",
+            "livegen.net
         ]
     },
     "welcomeUserId": "",
