@@ -22,7 +22,7 @@
     "roomDirectory": {
         "servers": [
             "matrix.org",
-            "livegen.net
+            "livegen.net"
         ]
     },
     "welcomeUserId": "",
