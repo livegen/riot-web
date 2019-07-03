@@ -109,25 +109,33 @@ You can configure the app by copying `config.sample.json` to
 
 For a good example, see https://riot.im/develop/config.json.
 
-1. `default_server_name` sets the default server name to use for authentication.
-   This will trigger Riot to ask
-   `https://<server_name>/.well-known/matrix/client` for the homeserver and
-   identity server URLs to use. This is the recommended approach for setting a
-   default server. However, it is also possible to use the following to directly
-   configure each of the URLs:
-   * `default_hs_url` sets the default homeserver URL.
-   * `default_is_url` sets the default identity server URL (this is the server used
-      for verifying third party identifiers like email addresses). If this is blank,
-      registering with an email address, adding an email address to your account,
-      or inviting users via email address will not work.  Matrix identity servers are
-      very simple web services which map third party identifiers (currently only email
-      addresses) to matrix IDs: see http://matrix.org/docs/spec/identity_service/unstable.html
-      for more details.  Currently the only public matrix identity servers are https://matrix.org
-      and https://vector.im.  In the future, identity servers will be decentralised.
-   * Riot will report an error if you accidentally configure both `default_server_name` _and_ `default_hs_url` since it's unclear which should take priority.
+1. `default_server_config` sets the default homeserver and identity server URL for
+   Riot to use. The object is the same as returned by [https://<server_name>/.well-known/matrix/client](https://matrix.org/docs/spec/client_server/latest.html#get-well-known-matrix-client),
+   with added support for a `server_name` under the `m.homeserver` section to display
+   a custom homeserver name. Alternatively, the config can contain a `default_server_name`
+   instead which is where Riot will go to get that same object, although this option is
+   deprecated - see the `.well-known` link above for more information on using this option. 
+   Note that the `default_server_name` is used to get a complete server configuration 
+   whereas the `server_name` in the `default_server_config` is for display purposes only.
+   * *Note*: The URLs can also be individually specified as `default_hs_url` and 
+     `default_is_url`, however these are deprecated. They are maintained for backwards
+     compatibility with older configurations. `default_is_url` is respected only
+     if `default_hs_url` is used.
+   * The identity server is used for verifying third party identifiers like emails
+     and phone numbers. It is not used to store your password or account information.
+     If not provided, the identity server defaults to vector.im unless `disable_identity_server`
+     is set to true in the config. Currently the only two public identity servers
+     are https://matrix.org and https://vector.im, however in future identity servers
+     will be decentralised.
+   * Riot will fail to load if a mix of `default_server_config`, `default_server_name`, or
+     `default_hs_url` is specified. When multiple sources are specified, it is unclear
+     which should take priority and therefore the application cannot continue.
 1. `features`: Lookup of optional features that may be `enable`d, `disable`d, or exposed to the user
    in the `labs` section of settings.  The available optional experimental features vary from
-   release to release.
+   release to release. Some of the available features are described in the Labs Feature section
+   of this README.
+1. `showLabsSettings`: Shows the "labs" tab of user settings even when no `features` are enabled
+   or present. Useful for getting at settings which may be otherwise hidden.
 1. `brand`: String to pass to your homeserver when configuring email notifications, to let the
    homeserver know what email template to use when talking to you.
 1. `branding`: Configures various branding and logo details, such as:
@@ -173,6 +181,9 @@ For a good example, see https://riot.im/develop/config.json.
     1. `homeUrl`: Content shown on the inside of the app when a specific room is
        not selected. By default, no home page is configured. If one is set, a
        button to access it will be shown in the top left menu.
+1. `defaultCountryCode`: The ISO 3166 alpha2 country code to use when showing
+   country selectors, like the phone number input on the registration page.
+   Defaults to `GB` if the given code is unknown or not provided.
 
 
 Note that `index.html` also has an og:image meta tag that is set to an image
@@ -188,7 +199,7 @@ each time you download a new version of Riot.
 Running as a Desktop app
 ========================
 
-Riot can also be run as a desktop app, wrapped in electron. You can download a
+Riot can also be run as a desktop app, wrapped in Electron. You can download a
 pre-built version from https://riot.im/download/desktop/ or, if you prefer,
 build it yourself.
 
@@ -196,13 +207,13 @@ To build it yourself, follow the instructions below.
 
 1. Follow the instructions in 'Building From Source' above, but run
    `yarn build` instead of `yarn dist` (since we don't need the tarball).
-2. Install electron and run it:
+2. Install Electron and run it:
 
    ```bash
    yarn electron
    ```
 
-To build packages, use electron-builder. This is configured to output:
+To build packages, use `electron-builder`. This is configured to output:
  * `dmg` + `zip` for macOS
  * `exe` + `nupkg` for Windows
  * `deb` for Linux
@@ -214,22 +225,20 @@ for dependencies required for building packages for various platforms.
 
 The only platform that can build packages for all three platforms is macOS:
 ```bash
-brew install wine --without-x11
 brew install mono
-brew install gnu-tar
 yarn install
 yarn build:electron
 ```
 
-For other packages, use electron-builder manually. For example, to build a package
-for 64 bit Linux:
+For other packages, use `electron-builder` manually. For example, to build a
+package for 64 bit Linux:
 
  1. Follow the instructions in 'Building From Source' above
  2. `node_modules/.bin/build -l --x64`
 
-All electron packages go into `electron_app/dist/`
+All Electron packages go into `electron_app/dist/`
 
-Many thanks to @aviraldg for the initial work on the electron integration.
+Many thanks to @aviraldg for the initial work on the Electron integration.
 
 Other options for running as a desktop app:
  * @asdf:matrix.org points out that you can use nativefier and it just works(tm)

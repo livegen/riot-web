@@ -43,7 +43,11 @@
     "Need help?": "Besoin d'aide ?",
     "Explore rooms": "Explorer les salons",
     "Room Directory": "Répertoire de salons",
-
+    "Invalid configuration: can only specify one of default_server_config, default_server_name, or default_hs_url.": "Configuration invalide : il ne faut spécifier qu’un des trois champs entre default_server_config, default_server_name et default_hs_url.",
+    "Invalid configuration: no default server specified.": "Configuration invalide : aucun serveur par défaut spécifié.",
+    "This installation of Riot seems to have an invalid server configuration. If you are the administrator, please correct the error below": "Cette installation de Riot semble avoir une configuration de serveur non valide. Si vous êtes l’administrateur, corrigez l’erreur ci-dessous",
+    "Your Riot is misconfigured": "Votre Riot est mal configuré",
+    
     "Your username": "Votre nom d'utilisateur",
     "Your password": "Votre mot de passe",
     "Repeat your password": "Répéter votre mot de passe",
@@ -58,6 +62,7 @@
     "A unknown error occurred": "Une erreur inconnu s'est produite",
     "No response received": "Le serveur n'a pas répondu",
     "Invalid response received": "La réponse du serveur est invalide",
+    "Unexpected error preparing the app. See console for details.": "Une erreur inattendue est survenue pendant la préparation de l’application. Consultez la console pour avoir des détails.",
     "Account created with success": "Compte crée avec succès",
     "You will be redirected soon to login page": "Vous allez bientôt être redirigé sur la page de login"
 }
