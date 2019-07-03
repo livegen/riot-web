@@ -22,11 +22,11 @@ export default class VectorAuthRegistration extends React.PureComponent {
 
     submitRegistration = (data) => {
         return new Promise((resolve, reject) => {
-            const { defaultHsUrl } = this.props;
+            const { serverConfig } = this.props;
 
             const request = Matrix.getRequest();
             const opts = {
-                uri: `${defaultHsUrl}/register`,
+                uri: `${serverConfig.hsUrl}/register`,
                 method: 'POST',
                 form: data,
                 json: false,
