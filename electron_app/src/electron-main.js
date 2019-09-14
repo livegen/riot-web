@@ -1,8 +1,8 @@
 /*
 Copyright 2016 Aviral Dasgupta
 Copyright 2016 OpenMarket Ltd
-Copyright 2017 Michael Telatynski <7t3chguy@gmail.com>
-Copyright 2018 New Vector Ltd
+Copyright 2018, 2019 New Vector Ltd
+Copyright 2017, 2019 Michael Telatynski <7t3chguy@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -173,6 +173,9 @@ ipcMain.on('ipcCall', async function(ev, payload) {
             await migrateFromOldOrigin();
             migratingOrigin = false;
             break;
+        case 'getConfig':
+            ret = vectorConfig;
+            break;
         default:
             mainWindow.webContents.send('ipcReply', {
                 id: payload.id,
@@ -208,7 +211,14 @@ const launcher = new AutoLaunch({
 // work.
 // Also mark it as secure (ie. accessing resources from this
 // protocol and HTTPS won't trigger mixed content warnings).
-protocol.registerStandardSchemes(['vector'], {secure: true});
+protocol.registerSchemesAsPrivileged([{
+    scheme: 'vector',
+    privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+    },
+}]);
 
 app.on('ready', () => {
     if (argv['devtools']) {
@@ -295,7 +305,10 @@ app.on('ready', () => {
         console.log('No update_base_url is defined: auto update is disabled');
     }
 
-    const iconPath = `${__dirname}/../img/riot.${process.platform === 'win32' ? 'ico' : 'png'}`;
+    // It's important to call `path.join` so we don't end up with the packaged
+    // asar in the final path.
+    const iconFile = `riot.${process.platform === 'win32' ? 'ico' : 'png'}`;
+    const iconPath = path.join(__dirname, "..", "..", "img", iconFile);
 
     // Load the previous window state with fallback to defaults
     const mainWindowState = windowStateKeeper({

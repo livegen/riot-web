@@ -1,6 +1,9 @@
 {
-    "Unexpected error preparing the app. See console for details.": "Unexpected error preparing the app. See console for details.",
+       "Your Riot configuration contains invalid JSON. Please correct the problem and reload the page.": "Your Riot configuration contains invalid JSON. Please correct the problem and reload the page.",
+    "The message from the parser is: %(message)s": "The message from the parser is: %(message)s",
+    "Invalid JSON": "Invalid JSON",
     "Your Riot is misconfigured": "Your Riot is misconfigured",
+    "Unexpected error preparing the app. See console for details.": "Unexpected error preparing the app. See console for details.",
     "Invalid configuration: can only specify one of default_server_config, default_server_name, or default_hs_url.": "Invalid configuration: can only specify one of default_server_config, default_server_name, or default_hs_url.",
     "Invalid configuration: no default server specified.": "Invalid configuration: no default server specified.",
     "Riot Desktop on %(platformName)s": "Riot Desktop on %(platformName)s",
@@ -20,8 +23,6 @@
     "Chat with Riot Bot": "Chat with Riot Bot",
     "Explore rooms": "Explore rooms",
     "Room Directory": "Room Directory",
-    "Search the room directory": "Search the room directory",
-    "Get started with some tips from Riot Bot!": "Get started with some tips from Riot Bot!",
     
     "Your username": "Your username",
     "Your password": "Your password",

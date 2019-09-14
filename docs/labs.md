@@ -1,12 +1,29 @@
 # Labs features
 
 Some notes on the features you can enable by going to `Settings->Labs`. Not exhaustive, chat in
-[#riot-web:matrix.org] for more information.
+[#riot-web:matrix.org](https://matrix.to/#/#riot-web:matrix.org) for more information.
 
 **Be warned! Labs features are not finalised, they may be fragile, they may change, they may be
 dropped. Ask in the room if you are unclear about any details here.**
 
-## Render simple counters in room header
+## Message pinning (`feature_pinning`)
+
+Allows you to pin messages in the room. To pin a message, use the 3 dots to the right of the message
+and select "Pin".
+
+## Custom status (`feature_custom_status`)
+
+An experimental approach for supporting custom status messages across DMs. To set a status, click on
+your avatar next to the message composer.
+
+## Custom tags (`feature_custom_tags`)
+
+An experimental approach for dealing with custom tags. Custom tags will appear in the bottom portion
+of the community filter panel.
+
+Setting custom tags is not supported by Riot.
+
+## Render simple counters in room header (`feature_state_counters`)
 
 Allows rendering of labelled counters above the message list.
 
@@ -28,18 +45,3 @@ Once enabled, send a custom state event to a room to set values:
 ```
 
 That's it. Now should see your new counter under the header.
-
-## Reactions
-
-`feature_reactions` allows reacting to messages with emoji and displaying
-reactions from other people. This feature is currently under active development,
-and only portions have been implemented so far.
-
-## Message editing
-
-`feature_message_editing` allows editing messages after they have been sent,
-accessible from the reaction/context bar when hovering a message.
-This feature is currently under active development,
-and only portions have been implemented so far.
-
-[#riot-web:matrix.org]: https://matrix.to/#/#riot-web:matrix.org
