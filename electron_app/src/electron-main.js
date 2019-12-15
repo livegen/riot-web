@@ -40,6 +40,17 @@ const { migrateFromOldOrigin } = require('./originMigrator');
 const windowStateKeeper = require('electron-window-state');
 const Store = require('electron-store');
 
+const fs = require('fs');
+const afs = fs.promises;
+
+let Seshat = null;
+
+try {
+    Seshat = require('matrix-seshat');
+} catch (e) {
+    console.warn("seshat unavailable", e);
+}
+
 if (argv["help"]) {
     console.log("Options:");
     console.log("  --profile-dir {path}: Path to where to store the profile.");
@@ -77,17 +88,38 @@ try {
 try {
     // Load local config and use it to override values from the one baked with the build
     const localConfig = require(path.join(app.getPath('userData'), 'config.json'));
+
+    // If the local config has a homeserver defined, don't use the homeserver from the build
+    // config. This is to avoid a problem where Riot thinks there are multiple homeservers
+    // defined, and panics as a result.
+    const homeserverProps = ['default_is_url', 'default_hs_url', 'default_server_name', 'default_server_config'];
+    if (Object.keys(localConfig).find(k => homeserverProps.includes(k))) {
+        // Rip out all the homeserver options from the vector config
+        vectorConfig = Object.keys(vectorConfig)
+            .filter(k => !homeserverProps.includes(k))
+            .reduce((obj, key) => {obj[key] = vectorConfig[key]; return obj;}, {});
+    }
+
     vectorConfig = Object.assign(vectorConfig, localConfig);
 } catch (e) {
     // Could not load local config, this is expected in most cases.
 }
 
+const eventStorePath = path.join(app.getPath('userData'), 'EventStore');
 const store = new Store({ name: "electron-config" });
+
+let eventIndex = null;
 
 let mainWindow = null;
 global.appQuitting = false;
-global.minimizeToTray = store.get('minimizeToTray', true);
 
+// It's important to call `path.join` so we don't end up with the packaged asar in the final path.
+const iconFile = `riot.${process.platform === 'win32' ? 'ico' : 'png'}`;
+const iconPath = path.join(__dirname, "..", "..", "img", iconFile);
+const trayConfig = {
+    icon_path: iconPath,
+    brand: vectorConfig.brand || 'Riot',
+};
 
 // handle uncaught errors otherwise it displays
 // stack traces in popup dialogs, which is terrible (which
@@ -118,16 +150,17 @@ ipcMain.on('loudNotification', function() {
     }
 });
 
-let powerSaveBlockerId;
+let powerSaveBlockerId = null;
 ipcMain.on('app_onAction', function(ev, payload) {
     switch (payload.action) {
         case 'call_state':
-            if (powerSaveBlockerId && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
+            if (powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
                 if (payload.state === 'ended') {
                     powerSaveBlocker.stop(powerSaveBlockerId);
+                    powerSaveBlockerId = null;
                 }
             } else {
-                if (payload.state === 'connected') {
+                if (powerSaveBlockerId === null && payload.state === 'connected') {
                     powerSaveBlockerId = powerSaveBlocker.start('prevent-display-sleep');
                 }
             }
@@ -167,10 +200,16 @@ ipcMain.on('ipcCall', async function(ev, payload) {
             }
             break;
         case 'getMinimizeToTrayEnabled':
-            ret = global.minimizeToTray;
+            ret = tray.hasTray();
             break;
         case 'setMinimizeToTrayEnabled':
-            store.set('minimizeToTray', global.minimizeToTray = args[0]);
+            if (args[0]) {
+                // Create trayIcon icon
+                tray.create(trayConfig);
+            } else {
+                tray.destroy();
+            }
+            store.set('minimizeToTray', args[0]);
             break;
         case 'getAutoHideMenuBarEnabled':
             ret = global.mainWindow.isMenuBarAutoHide();
@@ -200,6 +239,7 @@ ipcMain.on('ipcCall', async function(ev, payload) {
         case 'getConfig':
             ret = vectorConfig;
             break;
+
         default:
             mainWindow.webContents.send('ipcReply', {
                 id: payload.id,
@@ -209,6 +249,154 @@ ipcMain.on('ipcCall', async function(ev, payload) {
     }
 
     mainWindow.webContents.send('ipcReply', {
+        id: payload.id,
+        reply: ret,
+    });
+});
+
+ipcMain.on('seshat', async function(ev, payload) {
+    if (!mainWindow) return;
+
+    const sendError = (id, e) => {
+        const error = {
+            message: e.message
+        }
+
+        mainWindow.webContents.send('seshatReply', {
+            id:id,
+            error: error
+        });
+    }
+
+    const args = payload.args || [];
+    let ret;
+
+    switch (payload.name) {
+        case 'supportsEventIndexing':
+            if (Seshat === null) ret = false;
+            else ret = true;
+            break;
+
+        case 'initEventIndex':
+            if (eventIndex === null) {
+                try {
+                    await afs.mkdir(eventStorePath, {recursive: true});
+                    eventIndex = new Seshat(eventStorePath, {passphrase: "DEFAULT_PASSPHRASE"});
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
+        case 'closeEventIndex':
+            eventIndex = null;
+            break;
+
+        case 'deleteEventIndex':
+            const deleteFolderRecursive = async(p) =>  {
+                for (let entry of await afs.readdir(p)) {
+                    const curPath = path.join(p, entry);
+                    await afs.unlink(curPath);
+                }
+            }
+
+            try {
+                await deleteFolderRecursive(eventStorePath);
+            } catch (e) {
+            }
+
+            break;
+
+        case 'isEventIndexEmpty':
+            if (eventIndex === null) ret = true;
+            else ret = await eventIndex.isEmpty();
+            break;
+
+        case 'addEventToIndex':
+            try {
+                eventIndex.addEvent(args[0], args[1]);
+            } catch (e) {
+                sendError(payload.id, e);
+                return;
+            }
+            break;
+
+        case 'commitLiveEvents':
+            try {
+                ret = await eventIndex.commit();
+            } catch (e) {
+                sendError(payload.id, e);
+                return;
+            }
+            break;
+
+        case 'searchEventIndex':
+            try {
+                ret = await eventIndex.search(args[0]);
+            } catch (e) {
+                sendError(payload.id, e);
+                return;
+            }
+            break;
+
+        case 'addHistoricEvents':
+            if (eventIndex === null) ret = false;
+            else {
+                try {
+                    ret = await eventIndex.addHistoricEvents(
+                        args[0], args[1], args[2]);
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
+        case 'removeCrawlerCheckpoint':
+            if (eventIndex === null) ret = false;
+            else {
+                try {
+                    ret = await eventIndex.removeCrawlerCheckpoint(args[0]);
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
+        case 'addCrawlerCheckpoint':
+            if (eventIndex === null) ret = false;
+            else {
+                try {
+                    ret = await eventIndex.addCrawlerCheckpoint(args[0]);
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
+        case 'loadCheckpoints':
+            if (eventIndex === null) ret = [];
+            else {
+                try {
+                    ret = await eventIndex.loadCheckpoints();
+                } catch (e) {
+                    ret = [];
+                }
+            }
+            break;
+
+        default:
+            mainWindow.webContents.send('seshatReply', {
+                id: payload.id,
+                error: "Unknown IPC Call: " + payload.name,
+            });
+            return;
+    }
+
+    mainWindow.webContents.send('seshatReply', {
         id: payload.id,
         reply: ret,
     });
@@ -329,11 +517,6 @@ app.on('ready', () => {
         console.log('No update_base_url is defined: auto update is disabled');
     }
 
-    // It's important to call `path.join` so we don't end up with the packaged
-    // asar in the final path.
-    const iconFile = `riot.${process.platform === 'win32' ? 'ico' : 'png'}`;
-    const iconPath = path.join(__dirname, "..", "..", "img", iconFile);
-
     // Load the previous window state with fallback to defaults
     const mainWindowState = windowStateKeeper({
         defaultWidth: 1024,
@@ -366,15 +549,8 @@ app.on('ready', () => {
     mainWindow.loadURL('vector://vector/webapp/');
     Menu.setApplicationMenu(vectorMenu);
 
-    // explicitly hide because setApplicationMenu on Linux otherwise shows...
-    // https://github.com/electron/electron/issues/9621
-    mainWindow.hide();
-
     // Create trayIcon icon
-    tray.create({
-        icon_path: iconPath,
-        brand: vectorConfig.brand || 'Riot',
-    });
+    if (store.get('minimizeToTray', true)) tray.create(trayConfig);
 
     mainWindow.once('ready-to-show', () => {
         mainWindowState.manage(mainWindow);
@@ -391,7 +567,8 @@ app.on('ready', () => {
         mainWindow = global.mainWindow = null;
     });
     mainWindow.on('close', (e) => {
-        if (global.minimizeToTray && !global.appQuitting && (tray.hasTray() || process.platform === 'darwin')) {
+        // If we are not quitting and have a tray icon then minimize to tray
+        if (!global.appQuitting && (tray.hasTray() || process.platform === 'darwin')) {
             // On Mac, closing the window just hides it
             // (this is generally how single-window Mac apps
             // behave, eg. Mail.app)
