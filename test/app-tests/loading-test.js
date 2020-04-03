@@ -1,5 +1,6 @@
 /*
 Copyright 2016 OpenMarket Ltd
+Copyright 2020 New Vector Ltd
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,45 +17,31 @@ limitations under the License.
 
 /* loading.js: test the myriad paths we have for loading the application */
 
-import PlatformPeg from 'matrix-react-sdk/lib/PlatformPeg';
+import PlatformPeg from 'matrix-react-sdk/src/PlatformPeg';
 import WebPlatform from '../../src/vector/platform/WebPlatform';
-
-import 'skin-sdk';
-
+import '../skin-sdk';
+import "../jest-mocks";
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
-import expect from 'expect';
 import MatrixReactTestUtils from 'matrix-react-test-utils';
-
-import jssdk from 'matrix-js-sdk';
-
-import sdk from 'matrix-react-sdk';
-import MatrixClientPeg from 'matrix-react-sdk/lib/MatrixClientPeg';
-import * as languageHandler from 'matrix-react-sdk/lib/languageHandler';
-import {VIEWS} from 'matrix-react-sdk/lib/components/structures/MatrixChat';
-import dis from 'matrix-react-sdk/lib/dispatcher';
-
+import * as jssdk from 'matrix-js-sdk';
+import * as sdk from 'matrix-react-sdk';
+import {MatrixClientPeg} from 'matrix-react-sdk/src/MatrixClientPeg';
+import {VIEWS} from 'matrix-react-sdk/src/components/structures/MatrixChat';
+import dis from 'matrix-react-sdk/src/dispatcher';
 import * as test_utils from '../test-utils';
 import MockHttpBackend from 'matrix-mock-request';
 import {parseQs, parseQsFromFragment} from '../../src/vector/url_utils';
-import {makeType} from "matrix-react-sdk/lib/utils/TypeUtils";
-import {ValidatedServerConfig} from "matrix-react-sdk/lib/utils/AutoDiscoveryUtils";
+import {makeType} from "matrix-react-sdk/src/utils/TypeUtils";
+import {ValidatedServerConfig} from "matrix-react-sdk/src/utils/AutoDiscoveryUtils";
 import {sleep} from "../test-utils";
+import "fake-indexeddb/auto";
+import {cleanLocalstorage} from "../test-utils";
+import {IndexedDBCryptoStore} from "matrix-js-sdk/src/crypto/store/indexeddb-crypto-store";
 
 const DEFAULT_HS_URL='http://my_server';
 const DEFAULT_IS_URL='http://my_is';
-
-expect.extend({
-    toStartWith(prefix) {
-        expect.assert(
-            this.actual.startsWith(prefix),
-            'expected %s to start with %s',
-            this.actual, prefix,
-        );
-        return this;
-    }
-});
 
 describe('loading:', function() {
     let parentDiv;
@@ -70,7 +57,6 @@ describe('loading:', function() {
     let tokenLoginCompletePromise;
 
     beforeEach(function() {
-        test_utils.beforeEach(this);
         httpBackend = new MockHttpBackend();
         jssdk.request(httpBackend.requestFn);
         parentDiv = document.createElement('div');
@@ -81,10 +67,6 @@ describe('loading:', function() {
 
         windowLocation = null;
         matrixChat = null;
-
-        languageHandler.setMissingEntryGenerator(function(key) {
-            return key.split('|', 2)[1];
-        });
     });
 
     afterEach(async function() {
@@ -98,14 +80,12 @@ describe('loading:', function() {
         // unmounting should have cleared the MatrixClientPeg
         expect(MatrixClientPeg.get()).toBe(null);
 
-        // chrome seems to take *ages* to delete the indexeddbs.
-        this.timeout(10000);
-
         // clear the indexeddbs so we can start from a clean slate next time.
         await Promise.all([
             test_utils.deleteIndexedDB('matrix-js-sdk:crypto'),
             test_utils.deleteIndexedDB('matrix-js-sdk:riot-web-sync'),
         ]);
+        cleanLocalstorage();
         console.log(`${Date.now()}: loading: afterEach complete`);
     });
 
@@ -323,11 +303,11 @@ describe('loading:', function() {
             localStorage.setItem("mx_last_room_id", "!last_room:id");
 
             // Create a crypto store as well to satisfy storage consistency checks
-            const cryptoStore = new jssdk.IndexedDBCryptoStore(
+            const cryptoStore = new IndexedDBCryptoStore(
                 indexedDB,
                 "matrix-js-sdk:crypto",
             );
-            await cryptoStore._connect();
+            await cryptoStore.startup();
         });
 
         it('shows the last known room by default', function() {
@@ -481,7 +461,7 @@ describe('loading:', function() {
                 assertAtLoadingSpinner(matrixChat);
 
                 httpBackend.when('POST', '/register').check(function(req) {
-                    expect(req.path).toStartWith(DEFAULT_HS_URL);
+                    expect(req.path.startsWith(DEFAULT_HS_URL)).toBe(true);
                     expect(req.queryParams.kind).toEqual('guest');
                 }).respond(200, {
                     user_id: "@guest:localhost",
@@ -494,7 +474,7 @@ describe('loading:', function() {
             }).then(() => {
                 return expectAndAwaitSync({isGuest: true});
             }).then((req) => {
-                expect(req.path).toStartWith(DEFAULT_HS_URL);
+                expect(req.path.startsWith(DEFAULT_HS_URL)).toBe(true);
 
                 // once the sync completes, we should have a welcome page
                 httpBackend.verifyNoOutstandingExpectation();
@@ -682,10 +662,6 @@ describe('loading:', function() {
             // Wait for another trip around the event loop for the UI to update
             return sleep(1);
         }).then(() => {
-            // we expect a spinner
-            ReactTestUtils.findRenderedComponentWithType(
-                matrixChat, sdk.getComponent('elements.Spinner'));
-
             httpBackend.when('GET', '/pushrules').respond(200, {});
             httpBackend.when('POST', '/filter').respond(200, { filter_id: 'fid' });
             return expectAndAwaitSync().catch((e) => {

@@ -35,7 +35,7 @@ const tray = require('./tray');
 const vectorMenu = require('./vectormenu');
 const webContentsHandler = require('./webcontents-handler');
 const updater = require('./updater');
-const { migrateFromOldOrigin } = require('./originMigrator');
+const protocolInit = require('./protocol');
 
 const windowStateKeeper = require('electron-window-state');
 const Store = require('electron-store');
@@ -48,7 +48,11 @@ let Seshat = null;
 try {
     Seshat = require('matrix-seshat');
 } catch (e) {
-    console.warn("seshat unavailable", e);
+    if (e.code === "MODULE_NOT_FOUND") {
+        console.log("Seshat isn't installed, event indexing is disabled.");
+    } else {
+        console.warn("Seshat unexpected error:", e);
+    }
 }
 
 if (argv["help"]) {
@@ -60,14 +64,9 @@ if (argv["help"]) {
     console.log("  --hidden:             Start the application hidden in the system tray.");
     console.log("  --help:               Displays this help message.");
     console.log("And more such as --proxy, see:" +
-        "https://github.com/electron/electron/blob/master/docs/api/chrome-command-line-switches.md");
+        "https://electronjs.org/docs/api/chrome-command-line-switches#supported-chrome-command-line-switches");
     app.exit();
 }
-
-// boolean flag set whilst we are doing one-time origin migration
-// We only serve the origin migration script while we're actually
-// migrating to mitigate any risk of it being used maliciously.
-let migratingOrigin = false;
 
 if (argv['profile-dir']) {
     app.setPath('userData', argv['profile-dir']);
@@ -231,11 +230,6 @@ ipcMain.on('ipcCall', async function(ev, payload) {
                 mainWindow.focus();
             }
             break;
-        case 'origin_migrate':
-            migratingOrigin = true;
-            await migrateFromOldOrigin();
-            migratingOrigin = false;
-            break;
         case 'getConfig':
             ret = vectorConfig;
             break;
@@ -353,6 +347,18 @@ ipcMain.on('seshat', async function(ev, payload) {
             }
             break;
 
+        case 'getStats':
+            if (eventIndex === null) ret = 0;
+            else {
+                try {
+                    ret = await eventIndex.getStats();
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
         case 'removeCrawlerCheckpoint':
             if (eventIndex === null) ret = false;
             else {
@@ -370,6 +376,18 @@ ipcMain.on('seshat', async function(ev, payload) {
             else {
                 try {
                     ret = await eventIndex.addCrawlerCheckpoint(args[0]);
+                } catch (e) {
+                    sendError(payload.id, e);
+                    return;
+                }
+            }
+            break;
+
+        case 'loadFileEvents':
+            if (eventIndex === null) ret = [];
+            else {
+                try {
+                    ret = await eventIndex.loadFileEvents(args[0]);
                 } catch (e) {
                     sendError(payload.id, e);
                     return;
@@ -409,6 +427,9 @@ if (!gotLock) {
     console.log('Other instance detected: exiting');
     app.exit();
 }
+
+// do this after we know we are the primary instance of the app
+protocolInit();
 
 const launcher = new AutoLaunch({
     name: vectorConfig.brand || 'Riot',
@@ -477,13 +498,7 @@ app.on('ready', () => {
 
         let baseDir;
         // first part of the path determines where we serve from
-        if (migratingOrigin && target[1] === 'origin_migrator_dest') {
-            // the origin migrator destination page
-            // (only the destination script needs to come from the
-            // custom protocol: the source part is loaded from a
-            // file:// as that's the origin we're migrating from).
-            baseDir = __dirname + "/../../origin_migrator/dest";
-        } else if (target[1] === 'webapp') {
+        if (target[1] === 'webapp') {
             baseDir = __dirname + "/../../webapp";
         } else {
             callback({error: -6}); // FILE_NOT_FOUND
