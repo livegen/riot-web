@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Matrix from 'matrix-js-sdk';
-import sdk from 'matrix-react-sdk/lib/index';
+import * as sdk from 'matrix-react-sdk';
 import dispatcher from 'matrix-react-sdk/src/dispatcher';
 import { _t } from 'matrix-react-sdk/lib/languageHandler';
 import RegistrationForm from "./RegistrationForm";
