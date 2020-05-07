@@ -9,6 +9,7 @@ npm run clean
 npm run build$dev
 
 cp config.json webapp/
+cp config.json webapp/config.livegen.net.json
 mkdir -p webapp/.well-known/matrix
 echo '{"m.server":"hs.livegen.net"}' > webapp/.well-known/matrix/server
 
