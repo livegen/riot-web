@@ -26,6 +26,7 @@ import * as React from "react";
 import * as languageHandler from "matrix-react-sdk/src/languageHandler";
 import SettingsStore from "matrix-react-sdk/src/settings/SettingsStore";
 import ElectronPlatform from "./platform/ElectronPlatform";
+import PWAPlatform from "./platform/PWAPlatform";
 import WebPlatform from "./platform/WebPlatform";
 import PlatformPeg from "matrix-react-sdk/src/PlatformPeg";
 import SdkConfig from "matrix-react-sdk/src/SdkConfig";
@@ -39,8 +40,10 @@ export const rageshakePromise = initRageshake();
 export function preparePlatform() {
     if (window.ipcRenderer) {
         console.log("Using Electron platform");
-        const plaf = new ElectronPlatform();
-        PlatformPeg.set(plaf);
+        PlatformPeg.set(new ElectronPlatform());
+    } else if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log("Using PWA platform");
+        PlatformPeg.set(new PWAPlatform());
     } else {
         console.log("Using Web platform");
         PlatformPeg.set(new WebPlatform());
@@ -148,18 +151,16 @@ export async function loadApp(fragParams: {}) {
 export async function showError(title: string, messages?: string[]) {
     const ErrorView = (await import(
         /* webpackChunkName: "error-view" */
-        /* webpackPreload: true */
-        "../components/structures/ErrorView")).default;
+        "../async-components/structures/ErrorView")).default;
     window.matrixChat = ReactDOM.render(<ErrorView title={title} messages={messages} />,
         document.getElementById('matrixchat'));
 }
 
 export async function showIncompatibleBrowser(onAccept) {
-    const CompatibilityPage = (await import(
-        /* webpackChunkName: "compatibility-page" */
-        /* webpackPreload: true */
-        "matrix-react-sdk/src/components/structures/CompatibilityPage")).default;
-    window.matrixChat = ReactDOM.render(<CompatibilityPage onAccept={onAccept} />,
+    const CompatibilityView = (await import(
+        /* webpackChunkName: "compatibility-view" */
+        "../async-components/structures/CompatibilityView")).default;
+    window.matrixChat = ReactDOM.render(<CompatibilityView onAccept={onAccept} />,
         document.getElementById('matrixchat'));
 }
 

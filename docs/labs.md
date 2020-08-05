@@ -1,11 +1,15 @@
 # Labs features
 
-If Labs is enabled in the [Riot config](config.md), you can enable some of these features by going
+If Labs is enabled in the [Element config](config.md), you can enable some of these features by going
 to `Settings->Labs`. This list is non-exhaustive and subject to change, chat in
-[#riot-web:matrix.org](https://matrix.to/#/#riot-web:matrix.org) for more information.
+[#element-web:matrix.org](https://matrix.to/#/#element-web:matrix.org) for more information.
 
 **Be warned! Labs features are not finalised, they may be fragile, they may change, they may be
 dropped. Ask in the room if you are unclear about any details here.**
+
+## New spinner design (`feature_new_spinner`)
+
+Replaces the old spinner image with a new, svg-based one featuring a sleeker design.
 
 ## Message pinning (`feature_pinning`)
 
@@ -22,7 +26,7 @@ your avatar next to the message composer.
 An experimental approach for dealing with custom tags. Custom tags will appear in the bottom portion
 of the community filter panel.
 
-Setting custom tags is not supported by Riot.
+Setting custom tags is not supported by Element.
 
 ## Render simple counters in room header (`feature_state_counters`)
 
@@ -49,7 +53,7 @@ That's it. Now should see your new counter under the header.
 
 ## Multiple integration managers (`feature_many_integration_managers`)
 
-Exposes a way to access all the integration managers known to Riot. This is an implementation of [MSC1957](https://github.com/matrix-org/matrix-doc/pull/1957).
+Exposes a way to access all the integration managers known to Element. This is an implementation of [MSC1957](https://github.com/matrix-org/matrix-doc/pull/1957).
 
 ## New ways to ignore people (`feature_mjolnir`)
 
@@ -67,13 +71,8 @@ An implementation of [MSC2241](https://github.com/matrix-org/matrix-doc/pull/224
 
 This also includes a new implementation of the user & member info panel, designed to share more code between showing community members & room members. Built on top of this new panel is also a new UX for verification from the member panel.
 
-## Cross-signing (in development) (`feature_cross_signing`)
-
-Cross-signing ([MSC1756](https://github.com/matrix-org/matrix-doc/pull/1756))
-improves the device verification experience by allowing you to verify a user
-instead of verifying each of their devices.
-
-This feature is still in development and will be landing in several chunks.
+The setting will be removed in a future release, enabling it non-optionally for
+all users.
 
 ## Bridge info tab (`feature_bridge_state`)
 
@@ -89,9 +88,9 @@ person is online.
 
 ## Custom themes (`feature_custom_themes`)
 
-Custom themes are possible through Riot's [theme support](./theming.md), though
-normally these themes need to be defined in the config for Riot. This labs flag
+Custom themes are possible through Element's [theme support](./theming.md), though
+normally these themes need to be defined in the config for Element. This labs flag
 adds an ability for end users to add themes themselves by using a URL to the JSON
 theme definition.
 
-For some sample themes, check out [aaronraimist/riot-web-themes](https://github.com/aaronraimist/riot-web-themes).
+For some sample themes, check out [aaronraimist/element-themes](https://github.com/aaronraimist/element-themes).

@@ -23,7 +23,7 @@ import { Capability, WidgetApi } from "matrix-react-sdk/src/widgets/WidgetApi";
 // Dev note: we use raw JS without many dependencies to reduce bundle size.
 // We do not need all of React to render a Jitsi conference.
 
-declare var JitsiMeetExternalAPI: any;
+declare let JitsiMeetExternalAPI: any;
 
 let inConference = false;
 
@@ -36,7 +36,7 @@ let userId: string;
 
 let widgetApi: WidgetApi;
 
-(async function () {
+(async function() {
     try {
         // The widget's options are encoded into the fragment to avoid leaking info to the server. The widget
         // spec on the other hand requires the widgetId and parentUrl to show up in the regular query string.
@@ -55,7 +55,7 @@ let widgetApi: WidgetApi;
         const parentUrl = qsParam('parentUrl', true);
         const widgetId = qsParam('widgetId', true);
 
-        // Set this up as early as possible because Riot will be hitting it almost immediately.
+        // Set this up as early as possible because Element will be hitting it almost immediately.
         if (parentUrl && widgetId) {
             widgetApi = new WidgetApi(qsParam('parentUrl'), qsParam('widgetId'), [
                 Capability.AlwaysOnScreen,

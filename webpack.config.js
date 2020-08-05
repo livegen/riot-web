@@ -6,16 +6,20 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const webpack = require("webpack");
 
 let og_image_url = process.env.RIOT_OG_IMAGE_URL;
-if (!og_image_url) og_image_url = 'https://riot.im/app/themes/riot/img/logos/riot-im-logo-black-text.png';
+if (!og_image_url) og_image_url = 'https://app.element.io/themes/element/img/logos/opengraph.png';
 
 module.exports = (env, argv) => {
     if (process.env.CI_PACKAGE) {
         // Don't run minification for CI builds (this is only set for runs on develop)
+        // We override this via environment variable to avoid duplicating the scripts
+        // in `package.json` just for a different mode.
         argv.mode = "development";
     }
 
     const development = {};
-    if (argv.mode !== "production") {
+    if (argv.mode === "production") {
+        development['devtool'] = 'nosources-source-map';
+    } else {
         // This makes the sourcemaps human readable for developers. We use eval-source-map
         // because the plain source-map devtool ruins the alignment.
         development['devtool'] = 'eval-source-map';
@@ -38,6 +42,8 @@ module.exports = (env, argv) => {
             "usercontent": "./node_modules/matrix-react-sdk/src/usercontent/index.js",
 
             // CSS themes
+            "theme-legacy": "./node_modules/matrix-react-sdk/res/themes/legacy-light/css/legacy-light.scss",
+            "theme-legacy-dark": "./node_modules/matrix-react-sdk/res/themes/legacy-dark/css/legacy-dark.scss",
             "theme-light": "./node_modules/matrix-react-sdk/res/themes/light/css/light.scss",
             "theme-dark": "./node_modules/matrix-react-sdk/res/themes/dark/css/dark.scss",
             "theme-light-custom": "./node_modules/matrix-react-sdk/res/themes/light-custom/css/light-custom.scss",
@@ -214,10 +220,10 @@ module.exports = (env, argv) => {
                                     // Note that we use slightly different plugins for SCSS.
 
                                     require('postcss-import')(),
+                                    require("postcss-mixins")(),
                                     require("postcss-simple-vars")(),
                                     require("postcss-extend")(),
                                     require("postcss-nested")(),
-                                    require("postcss-mixins")(),
                                     require("postcss-easings")(),
                                     require("postcss-strip-inline-comments")(),
                                     require("postcss-hexrgba")(),
@@ -292,12 +298,6 @@ module.exports = (env, argv) => {
         },
 
         plugins: [
-            new webpack.DefinePlugin({
-                'process.env': {
-                    NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-                },
-            }),
-
             // This exports our CSS using the splitChunks and loaders above.
             new MiniCssExtractPlugin({
                 filename: 'bundles/[hash]/[name].css',
@@ -333,6 +333,20 @@ module.exports = (env, argv) => {
                 filename: 'mobile_guide/index.html',
                 minify: argv.mode === 'production',
                 chunks: ['mobileguide'],
+            }),
+
+            // These are the static error pages for when the javascript env is *really unsupported*
+            new HtmlWebpackPlugin({
+                template: './src/vector/static/unable-to-load.html',
+                filename: 'static/unable-to-load.html',
+                minify: argv.mode === 'production',
+                chunks: [],
+            }),
+            new HtmlWebpackPlugin({
+                template: './src/vector/static/incompatible-browser.html',
+                filename: 'static/incompatible-browser.html',
+                minify: argv.mode === 'production',
+                chunks: [],
             }),
 
             // This is the usercontent sandbox's entry point (separate for iframing)
