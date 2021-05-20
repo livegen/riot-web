@@ -3,9 +3,6 @@
         "m.homeserver": {
             "base_url": "https://hs.livegen.net",
             "server_name": "Livegen"
-        },
-        "m.identity_server": {
-            "base_url": ""
         }
     },
     "disable_custom_urls": false,
@@ -13,6 +10,13 @@
     "disable_login_language_selector": false,
     "disable_3pid_login": false,
     "brand": "Livegen",
+    "branding": {
+        "welcomeBackgroundUrl":"https://static.livegen.net/welcome-background.jpg",
+        "authHeaderLogoUrl":"https://static.livegen.net/logo.svg"
+    },
+    "embeddedPages": {
+        "welcomeUrl":"welcome/livegen.html"
+    },
     "integrations_ui_url": "https://dimension.livegen.net/riot",
     "integrations_rest_url": "https://dimension.livegen.net/api/v1/scalar",
     "integrations_widgets_urls": [
